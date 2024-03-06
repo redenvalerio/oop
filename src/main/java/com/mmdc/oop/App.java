@@ -1,6 +1,23 @@
 package com.mmdc.oop;
 
-import java.util.HashMap;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.terminal.Terminal;
+import com.j256.ormlite.logger.LocalLog;
+import com.j256.ormlite.logger.LoggerFactory;
+
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+
+import com.mmdc.oop.Controllers.LoginController;
+import com.mmdc.oop.Views.LoginScreen;
+
+import java.io.IOException;
+
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.gui2.*;
+import com.googlecode.lanterna.screen.TerminalScreen;
 
 /**
  * Hello world!
@@ -8,36 +25,31 @@ import java.util.HashMap;
  */
 public class App 
 {
-    public static void main( String[] args )
-    {
-    Authentication authentication = new Authentication();
+    private final Screen screen;
+    private final MultiWindowTextGUI gui;
 
-    HashMap <String, String> users = new HashMap<>();
-    users.put("dvbondoy", authentication.hashPassword("letmein123"));
-    users.put("reden", authentication.hashPassword("qwerty321"));
-
-    HashMap<String, Role> roles = new HashMap<>();
-    roles.put("dvbondoy", Role.MANAGER);
-    roles.put("reden", Role.EMPLOYEE);
-
-    // lets login
-    String username = "dvbondoy";
-    String password = "letmein123";
-
-    if(users.containsKey(username) && authentication.authenticate(username, password, users.get(username))) {
-      System.out.println("Login successful for " + username);
-
-      if(authentication.authorize(username, roles.get(username))) {
-        System.out.println(username + " is authorized as a " + roles.get(username));
-      } else {
-        System.out.println(username + " is not authorized");
-      }
-    } else {
-      System.out.println("Login failed for " + username);
+    public App() throws IOException {
+        Terminal terminal = new DefaultTerminalFactory().createTerminal();
+        this.screen = new TerminalScreen(terminal);
+        this.gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLACK));
+        screen.startScreen();
     }
 
-    Employee employee = new Employee(1, "Dioscoro", Role.MANAGER, 50000);
-    System.out.println(employee);
+    public void showLoginScreen() throws Exception {
+        LoginScreen loginScreen = new LoginScreen(gui);
+        new LoginController(loginScreen, this);
+        gui.addWindowAndWait(loginScreen.getWindow());
+    }
 
+    public void showDashboardScreen() {
+        // DashboardScreen dashboardScreen = new DashboardScreen(gui);
+        // gui.addWindowAndWait(dashboardScreen.getWindow());
+    }
+
+    public static void main( String[] args ) throws Exception
+    {
+        System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
+        App app = new App();
+        app.showLoginScreen();
     }
 }
