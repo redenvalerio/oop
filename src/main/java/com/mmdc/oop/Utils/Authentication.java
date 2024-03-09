@@ -8,12 +8,12 @@ import java.util.Base64;
 public class Authentication {
     private static final String HASH_ALGORITHM = "SHA-256";
 
-    public boolean authenticate(String username, String password, String hashedPassword) {
+    public static boolean authenticate(String username, String password, String hashedPassword) {
         String generatedHash = hashPassword(password);
         return hashedPassword.equals(generatedHash);
     }
 
-    public String hashPassword(String password) {
+    public static String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
             byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));

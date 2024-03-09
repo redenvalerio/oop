@@ -8,15 +8,13 @@ public class User {
     @DatabaseField(generatedId = true)
     private int id;
 
-    @DatabaseField
+    @DatabaseField(unique = true, canBeNull = false)
     private String username;
 
     @DatabaseField
     private String password;
 
-    public User() {
-        // ORMLite needs a no-arg constructor
-    }
+    public User() {}
 
     // Getters and setters
     public int getId() {

@@ -1,7 +1,6 @@
 package com.mmdc.oop.Views;
 
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 
 public class LoginScreen {
 
@@ -11,7 +10,6 @@ public class LoginScreen {
     private TextBox passwordTextBox;
     private Button loginButton;
     private Button exitButton;
-    private MultiWindowTextGUI gui;
 
     public LoginScreen(MultiWindowTextGUI gui) {
         this.panel = new Panel(new GridLayout(2));
@@ -30,11 +28,8 @@ public class LoginScreen {
         exitButton = new Button("Exit");
         panel.addComponent(exitButton);
 
-        // Creating the window to hold the panel
         this.window = new BasicWindow("Login");
         window.setComponent(panel);
-
-        this.gui = gui;
     }
 
     public Button getLoginButton() {
@@ -55,9 +50,5 @@ public class LoginScreen {
 
     public BasicWindow getWindow() {
         return window;
-    }
-
-    public void showMessage(String message, String title) {
-        MessageDialog.showMessageDialog(gui, title, message);
     }
 }

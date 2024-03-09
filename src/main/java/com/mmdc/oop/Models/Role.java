@@ -12,13 +12,7 @@ public class Role {
     private String roleName;
 
     // Constructor
-    public Role() {
-        // ORMLite needs a no-arg constructor
-    }
-
-    public Role(String roleName) {
-        this.roleName = roleName;
-    }
+    public Role() {}
 
     // Getters and Setters
     public int getId() {
