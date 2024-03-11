@@ -13,15 +13,16 @@ import com.googlecode.lanterna.gui2.LinearLayout;
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
 import com.googlecode.lanterna.gui2.Panel;
 import com.googlecode.lanterna.gui2.TextBox;
+import com.mmdc.oop.Interfaces.IView;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Repositories.UserRepository;
 
-public class DashboardScreen {
+public class DashboardView implements IView {
   private Panel panel;
   private BasicWindow window;
   private UserRepository userRepository;
   private MultiWindowTextGUI gui;
-  public DashboardScreen(MultiWindowTextGUI gui, UserRepository userRepository) {
+  public DashboardView(MultiWindowTextGUI gui, UserRepository userRepository) {
     this.gui = gui;
     this.panel = new Panel();
     this.userRepository = userRepository;
@@ -111,7 +112,7 @@ public class DashboardScreen {
     editUserWindow.setComponent(editUserPanel);
 
     Panel actionPanel = new Panel();
-    actionPanel.setLayoutManager(new GridLayout(3));
+    actionPanel.setLayoutManager(new GridLayout(4));
 
     Button addUserButton = new Button("Add");
     addUserButton.addListener(e -> {
@@ -126,10 +127,14 @@ public class DashboardScreen {
     });
 
     Button deleteButton = new Button("Delete");
-
+    Button logoutButton = new Button("Logout");
+    logoutButton.addListener(e -> {
+      System.exit(0);
+    });
     actionPanel.addComponent(addUserButton);
     actionPanel.addComponent(editButton);
     actionPanel.addComponent(new Button("Delete"));
+    actionPanel.addComponent(logoutButton);
 
     parent.addComponent(actionPanel);
     return parent;

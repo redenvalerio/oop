@@ -1,8 +1,9 @@
 package com.mmdc.oop.Views;
 
 import com.googlecode.lanterna.gui2.*;
+import com.mmdc.oop.Interfaces.IView;
 
-public class LoginScreen {
+public class LoginView implements IView {
 
     private Panel panel;
     private BasicWindow window;
@@ -11,7 +12,7 @@ public class LoginScreen {
     private Button loginButton;
     private Button exitButton;
 
-    public LoginScreen(MultiWindowTextGUI gui) {
+    public LoginView(MultiWindowTextGUI gui) {
         this.panel = new Panel(new GridLayout(2));
         
         panel.addComponent(new Label("Username:"));

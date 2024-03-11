@@ -11,8 +11,8 @@ import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
 import com.mmdc.oop.Services.SeedService;
-import com.mmdc.oop.Views.DashboardScreen;
-import com.mmdc.oop.Views.LoginScreen;
+import com.mmdc.oop.Views.DashboardView;
+import com.mmdc.oop.Views.LoginView;
 
 import java.io.IOException;
 
@@ -38,15 +38,24 @@ public class App
 
     public void showLoginScreen(UserRepository userRepository) throws Exception {
         gui.removeWindow(gui.getActiveWindow());
-        LoginScreen loginScreen = new LoginScreen(gui);
+        LoginView loginScreen = new LoginView(gui);
         new LoginController(this, loginScreen, userRepository);
         gui.addWindowAndWait(loginScreen.getWindow());
     }
 
     public void showDashboardScreen(UserRepository userRepository) throws IOException {
         gui.removeWindow(gui.getActiveWindow());
-        DashboardScreen dashboardScreen = new DashboardScreen(gui, userRepository);
+        DashboardView dashboardScreen = new DashboardView(gui, userRepository);
         gui.addWindowAndWait(dashboardScreen.getWindow());
+    }
+
+    public void replace(BasicWindow newWindow) {
+        gui.removeWindow(gui.getActiveWindow());
+        gui.addWindowAndWait(newWindow);
+    }
+
+    public void showOnTop(BasicWindow newWindow) {
+        gui.addWindowAndWait(newWindow);
     }
 
     public static void main( String[] args ) throws Exception
@@ -62,6 +71,8 @@ public class App
         // Services
         SeedService seedService = new SeedService(userRepository, roleRepository, userRoleRepository);
         seedService.seed();
+
+        // Views
 
         app.showLoginScreen(userRepository);
     }

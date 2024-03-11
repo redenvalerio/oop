@@ -7,10 +7,10 @@ import com.mmdc.oop.App;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Utils.Authentication;
-import com.mmdc.oop.Views.LoginScreen;
+import com.mmdc.oop.Views.LoginView;
 
 public class LoginController {
-  public LoginController(App app, LoginScreen loginScreen, UserRepository userRepository) {
+  public LoginController(App app, LoginView loginScreen, UserRepository userRepository) {
     List<User> users = userRepository.findAll();
 
     loginScreen.getLoginButton().addListener(e -> {
