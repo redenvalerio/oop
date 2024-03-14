@@ -84,7 +84,7 @@ public class DashboardView implements IView {
     Panel dashboardPanel = new Panel();
     dashboardPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
     List<CheckBox> checkBoxList = new ArrayList<>();
-    String[] labels = {"Users", "Profile", "Attendance"};
+    String[] labels = {"Users", "Profile", "Attendance", "Payroll"};
 
     //change forloop
     for (int i = 0; i < labels.length; i++) {
@@ -115,6 +115,9 @@ public class DashboardView implements IView {
         }
         if(checkBox.getLabel().equals("Attendance")) {
           panel.addComponent(getAttendancePanel());
+        }
+        if(checkBox.getLabel().equals("Payroll")) {
+          panel.addComponent(getPayrollPanel());
         }
         panel.addComponent(footerPanel);
       }
@@ -652,6 +655,13 @@ public class DashboardView implements IView {
     }
 
     parent.addComponent(schedule);
+
+    return parent;
+  }
+
+  private Panel getPayrollPanel() {
+    Panel parent = new Panel();
+    parent.setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
     return parent;
   }

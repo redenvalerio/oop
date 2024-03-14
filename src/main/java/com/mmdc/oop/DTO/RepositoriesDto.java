@@ -4,6 +4,7 @@ import com.mmdc.oop.Repositories.AttendanceRepository;
 import com.mmdc.oop.Repositories.EmployeeRepository;
 import com.mmdc.oop.Repositories.LeaveRepository;
 import com.mmdc.oop.Repositories.OvertimeRepository;
+import com.mmdc.oop.Repositories.PayrollRepository;
 import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
@@ -16,11 +17,9 @@ public class RepositoriesDto {
    private AttendanceRepository attendanceRepository;
    private OvertimeRepository overtimeRepository;
    private LeaveRepository leaveRepository;
+   private PayrollRepository payrollRepository;
 
-   public RepositoriesDto(UserRepository userRepository, RoleRepository roleRepository,
-      UserRoleRepository userRoleRepository, EmployeeRepository employeeRepository,
-      AttendanceRepository attendanceRepository, OvertimeRepository overtimeRepository,
-      LeaveRepository leaveRepository) {
+  public RepositoriesDto(UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository, EmployeeRepository employeeRepository, AttendanceRepository attendanceRepository, OvertimeRepository overtimeRepository, LeaveRepository leaveRepository, PayrollRepository payrollRepository) {
     this.userRepository = userRepository;
     this.roleRepository = roleRepository;
     this.userRoleRepository = userRoleRepository;
@@ -28,8 +27,16 @@ public class RepositoriesDto {
     this.attendanceRepository = attendanceRepository;
     this.overtimeRepository = overtimeRepository;
     this.leaveRepository = leaveRepository;
+    this.payrollRepository = payrollRepository;
   }
 
+  public PayrollRepository getPayrollRepository() {
+    return this.payrollRepository;
+  }
+
+  public void setPayrollRepository(PayrollRepository payrollRepository) {
+    this.payrollRepository = payrollRepository;
+  }
 
   public AttendanceRepository getAttendanceRepository() {
     return this.attendanceRepository;

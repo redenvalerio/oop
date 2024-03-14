@@ -11,6 +11,7 @@ import com.mmdc.oop.Repositories.AttendanceRepository;
 import com.mmdc.oop.Repositories.EmployeeRepository;
 import com.mmdc.oop.Repositories.LeaveRepository;
 import com.mmdc.oop.Repositories.OvertimeRepository;
+import com.mmdc.oop.Repositories.PayrollRepository;
 import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
@@ -54,9 +55,10 @@ public class App
         AttendanceRepository attendanceRepository = new AttendanceRepository(app.connectionSource);
         OvertimeRepository overtimeRepository = new OvertimeRepository(app.connectionSource);
         LeaveRepository leaveRepository = new LeaveRepository(app.connectionSource);
+        PayrollRepository payrollRepository = new PayrollRepository(app.connectionSource);
 
         RepositoriesDto repositoriesDto = new RepositoriesDto(userRepository, roleRepository, userRoleRepository,
-            employeeRepository, attendanceRepository, overtimeRepository, leaveRepository);
+            employeeRepository, attendanceRepository, overtimeRepository, leaveRepository, payrollRepository);
 
         // Services
         SeedService seedService = new SeedService(repositoriesDto);
