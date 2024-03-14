@@ -48,6 +48,9 @@ public class ShowPayrollDetails implements IView {
     payrollPanel.addComponent(new Label("Pay End Date:"));
     payrollPanel.addComponent(new Label(payroll.getPayEndDate().toString()));
 
+    payrollPanel.addComponent(new Label("Total Hours:"));
+    payrollPanel.addComponent(new Label(payroll.getTotalHours().toString()));
+
     payrollPanel.addComponent(new Label("Basic Salary:"));
     payrollPanel.addComponent(new Label(payroll.getRegularPay().toString()));
 

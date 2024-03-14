@@ -146,6 +146,7 @@ public class GeneratePayrollView implements IView {
           }
         }
         totalHours -= overtimeHours;
+
         double regularPay = totalHours * emp.getHourlyRate();
         payroll.setRegularPay(regularPay);
 
@@ -197,6 +198,9 @@ public class GeneratePayrollView implements IView {
       }
 
       MessageDialog.showMessageDialog(gui, "Success", "Payroll generated successfully");
+      AppState.currentCalendarDate = LocalDate.now();
+      AppState.selectedPayBeginDate = null;
+      AppState.selectedPayEndDate = null;
       this.window.close();
     });
     Button cancelButton = new Button("Cancel");

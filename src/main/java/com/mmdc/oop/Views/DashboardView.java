@@ -278,7 +278,13 @@ public class DashboardView implements IView {
     viewButton.addListener((button) -> {
       gui.addWindowAndWait(new ShowPayrollReport(gui, AppState.currentUser.getId(), re).getWindow());
     });
+
+    Button applyForLeave = new Button("Apply for Leave");
+    Button submitOvertime = new Button("Submit Overtime");
+
     parent.addComponent(viewButton);
+    parent.addComponent(applyForLeave);
+    parent.addComponent(submitOvertime);
     parent.addComponent(new Label(""));
     parent.addComponent(new Label(""));
     parent.addComponent(new Label(""));
