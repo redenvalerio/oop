@@ -18,6 +18,7 @@ import com.mmdc.oop.DTO.RepositoriesDto;
 import com.mmdc.oop.Interfaces.IView;
 import com.mmdc.oop.Models.Attendance;
 import com.mmdc.oop.Models.Employee;
+import com.mmdc.oop.Models.Overtime;
 import com.mmdc.oop.Models.Payroll;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Utils.AppState;
@@ -118,14 +119,38 @@ public class GeneratePayrollView implements IView {
         payroll.setTotalHours(totalHours);
 
         Employee emp = user.getEmployee();
+
+        // get set overtime
+        double overtimeHours = 0;
+        // filter Approved
+        List<Overtime> overtimes = this.repositoriesDto.getOvertimeRepository().findAll().stream()
+            .filter(overtime -> overtime.getUser().getId() == user.getId()).toList().stream().filter(overtime -> {
+              LocalDate overtimeDate = LocalDate.parse(overtime.getDate());
+              return overtimeDate.isAfter(selectedPayBeginDate)
+                  && (overtimeDate.isBefore(selectedPayEndDate) || overtimeDate.isEqual(selectedPayEndDate));
+            }).toList().stream().filter(overtime -> overtime.getStatus().equals("Approved")).toList();
+
+        if(overtimes != null) {
+          for (Overtime overtime : overtimes) {
+            String timeStart = overtime.getTimeStart();
+            String timeEnd = overtime.getTimeEnd();
+            String[] timeStartArr = timeStart.split(":");
+            String[] timeEndArr = timeEnd.split(":");
+            int timeStartHour = Integer.parseInt(timeStartArr[0]);
+            int timeStartMinute = Integer.parseInt(timeStartArr[1]);
+            int timeEndHour = Integer.parseInt(timeEndArr[0]);
+            int timeEndMinute = Integer.parseInt(timeEndArr[1]);
+            int hours = timeEndHour - timeStartHour;
+            int minutes = timeEndMinute - timeStartMinute;
+            overtimeHours += hours + (minutes / 60);
+          }
+        }
+        totalHours -= overtimeHours;
         double regularPay = totalHours * emp.getHourlyRate();
         payroll.setRegularPay(regularPay);
 
-        // get set overtime
-        double overtimePay = 0;
-        if (totalHours > 8) {
-          overtimePay = PayrollUtils.computeOvertimePay(totalHours, emp.getHourlyRate());
-        }
+        double overtimePay = overtimeHours * emp.getHourlyRate() * 1.5;
+
         payroll.setOvertimePay(overtimePay);
 
         double sss = 0;
@@ -146,15 +171,17 @@ public class GeneratePayrollView implements IView {
         }
         payroll.setPagibig(PAGIBIG);
 
+        double totalPay = regularPay + overtimePay;
+        payroll.setTotalPay(totalPay);
+
         double tax = 0;
-        tax = PayrollUtils.computeTax(regularPay, sss, philHealth, PAGIBIG);
+        tax = PayrollUtils.computeTax(totalPay, sss, philHealth, PAGIBIG);
         payroll.setTax(tax);
 
         double totalDeductions = sss + philHealth + PAGIBIG + tax;
         payroll.setTotalDeductions(totalDeductions);
 
-        double netPay = regularPay - totalDeductions;
-        payroll.setTotalPay(regularPay);
+        double netPay = totalPay - totalDeductions;
         payroll.setNetPay(netPay);
 
         payroll.setUser(user);
