@@ -1,10 +1,14 @@
 package com.mmdc.oop.Services;
 
+import java.util.Date;
 import java.util.List;
 
+import com.mmdc.oop.DTO.RepositoriesDto;
+import com.mmdc.oop.Models.Employee;
 import com.mmdc.oop.Models.Role;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Models.UserRole;
+import com.mmdc.oop.Repositories.EmployeeRepository;
 import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
@@ -14,11 +18,13 @@ public class SeedService {
   private UserRepository userRepository;
   private RoleRepository roleRepository;
   private UserRoleRepository userRoleRepository;
+  private EmployeeRepository employeeRepository;
 
-  public SeedService(UserRepository userRepository, RoleRepository roleRepository, UserRoleRepository userRoleRepository) { 
-    this.userRepository = userRepository;
-    this.roleRepository = roleRepository;
-    this.userRoleRepository = userRoleRepository;
+  public SeedService(RepositoriesDto repositoriesDto) { 
+    this.userRepository = repositoriesDto.getUserRepository();
+    this.roleRepository = repositoriesDto.getRoleRepository();
+    this.userRoleRepository = repositoriesDto.getUserRoleRepository();
+    this.employeeRepository = repositoriesDto.getEmployeeRepository();
   }
 
   public void seed() {
@@ -29,9 +35,29 @@ public class SeedService {
     users.stream().filter(user -> user.getUsername().equals("admin")).findFirst().ifPresentOrElse(
       user -> System.out.println("Admin user already exists"),
       () -> {
+        Employee employee = new Employee();
+        employee.setFirstName("Admin");
+        employee.setLastName("Admin");
+        employee.setDateOfBirth("01/01/2000");
+
+        employee.setAddress("Placeholder Address");
+
+        employee.setPhone("1234567890");
+        employee.setEmail("admin@test.com");
+
+        employee.setDepartment("Systems");
+        employee.setPosition("Admin");
+
+        employee.setHireDate(new Date().toString());
+
+        employee.setEmployeeType("Full Time");;
+        employee.setEmployeeStatus("Active");
+        employeeRepository.save(employee);
+
         User user = new User();
         user.setUsername("admin");
         user.setPassword(Authentication.hashPassword("admin123"));
+        user.setEmployee(employee);
         userRepository.save(user);
         System.out.println("Admin user created");
       });
@@ -45,6 +71,19 @@ public class SeedService {
         System.out.println("Admin role created");
       });
 
+
+    String[] roleNames = {"payroll", "hr", "employee"};
+    for (String roleName : roleNames) {
+      roles.stream().filter(role -> role.getRoleName().equals(roleName)).findFirst().ifPresentOrElse(
+        role -> System.out.println(roleName + " role already exists"),
+        () -> {
+          Role role = new Role();
+          role.setRoleName(roleName);
+          roleRepository.save(role);
+          System.out.println(roleName + " role created");
+        });
+    }
+
     userRoles.stream().filter(userRole -> userRole.getUser().getUsername().equals("admin")).findFirst().ifPresentOrElse(
       userRole -> System.out.println("Admin user role already exists"),
       () -> {
@@ -56,14 +95,6 @@ public class SeedService {
         userRoleRepository.save(userRole);
         System.out.println("Admin user role created");
       });
-
-    // create 10 dummy user
-    for (int i = 1; i <= 10; i++) {
-      User user = new User();
-      user.setUsername("user" + i);
-      user.setPassword(Authentication.hashPassword("user" + i + "123"));
-      userRepository.save(user);
-    }
 
     System.out.println("Seeding completed");
   }

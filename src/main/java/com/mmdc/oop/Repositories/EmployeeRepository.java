@@ -4,38 +4,29 @@ import java.util.List;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.stmt.query.In;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import com.mmdc.oop.Interfaces.IRepository;
-import com.mmdc.oop.Models.User;
+import com.mmdc.oop.Models.Employee;
 
-public class UserRepository implements IRepository<User, Integer> {
+public class EmployeeRepository implements IRepository<Employee, Integer> {
 
-  private Dao<User, Integer> userDao;
+  private Dao<Employee, Integer> employeeDao;
 
-  public UserRepository(ConnectionSource connectionSource) {
+  public EmployeeRepository(ConnectionSource connectionSource) {
     try {
-      TableUtils.createTableIfNotExists(connectionSource, User.class);
-      userDao = DaoManager.createDao(connectionSource, User.class);
+      TableUtils.createTableIfNotExists(connectionSource, Employee.class);
+      this.employeeDao = DaoManager.createDao(connectionSource, Employee.class);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   @Override
-  public User findById(Integer id) {
+  public Employee findById(Integer id) {
     try {
-      return userDao.queryForId(id);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
-
-  @Override
-  public List<User> findAll() {
-    try {
-      return userDao.queryForAll();
+      return employeeDao.queryForId(id);
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -43,9 +34,19 @@ public class UserRepository implements IRepository<User, Integer> {
   }
 
   @Override
-  public User save(User entity) {
+  public List<Employee> findAll() {
     try {
-      userDao.create(entity);
+      return employeeDao.queryForAll();
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  @Override
+  public Employee save(Employee entity) {
+    try {
+      employeeDao.create(entity);
       return entity;
     } catch (Exception e) {
       e.printStackTrace();
@@ -54,9 +55,9 @@ public class UserRepository implements IRepository<User, Integer> {
   }
 
   @Override
-  public User update(User entity) {
+  public Employee update(Employee entity) {
     try {
-      userDao.update(entity);
+      employeeDao.update(entity);
       return entity;
     } catch (Exception e) {
       e.printStackTrace();
@@ -65,11 +66,12 @@ public class UserRepository implements IRepository<User, Integer> {
   }
 
   @Override
-  public void delete(User entity) {
+  public void delete(Employee entity) {
     try {
-      userDao.delete(entity);
+      employeeDao.delete(entity);
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+  
 }

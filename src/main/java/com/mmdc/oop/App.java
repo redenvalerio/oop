@@ -6,7 +6,11 @@ import com.googlecode.lanterna.terminal.Terminal;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
-import com.mmdc.oop.Controllers.LoginController;
+import com.mmdc.oop.DTO.RepositoriesDto;
+import com.mmdc.oop.Repositories.AttendanceRepository;
+import com.mmdc.oop.Repositories.EmployeeRepository;
+import com.mmdc.oop.Repositories.LeaveRepository;
+import com.mmdc.oop.Repositories.OvertimeRepository;
 import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
@@ -14,11 +18,8 @@ import com.mmdc.oop.Services.SeedService;
 import com.mmdc.oop.Views.DashboardView;
 import com.mmdc.oop.Views.LoginView;
 
-import java.io.IOException;
-
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.gui2.*;
-import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
 import com.googlecode.lanterna.screen.TerminalScreen;
 
 public class App 
@@ -28,34 +29,16 @@ public class App
     private final Screen screen;
     private final MultiWindowTextGUI gui;
 
+    public MultiWindowTextGUI getGui() {
+        return gui;
+    }
+
     public App() throws Exception {
         connectionSource = new JdbcConnectionSource(DATABASE_URL);
         Terminal terminal = new DefaultTerminalFactory().createTerminal();
         this.screen = new TerminalScreen(terminal);
         this.gui = new MultiWindowTextGUI(screen, new DefaultWindowManager(), new EmptySpace(TextColor.ANSI.BLACK));
         screen.startScreen();
-    }
-
-    public void showLoginScreen(UserRepository userRepository) throws Exception {
-        gui.removeWindow(gui.getActiveWindow());
-        LoginView loginScreen = new LoginView(gui);
-        new LoginController(this, loginScreen, userRepository);
-        gui.addWindowAndWait(loginScreen.getWindow());
-    }
-
-    public void showDashboardScreen(UserRepository userRepository) throws IOException {
-        gui.removeWindow(gui.getActiveWindow());
-        DashboardView dashboardScreen = new DashboardView(gui, userRepository);
-        gui.addWindowAndWait(dashboardScreen.getWindow());
-    }
-
-    public void replace(BasicWindow newWindow) {
-        gui.removeWindow(gui.getActiveWindow());
-        gui.addWindowAndWait(newWindow);
-    }
-
-    public void showOnTop(BasicWindow newWindow) {
-        gui.addWindowAndWait(newWindow);
     }
 
     public static void main( String[] args ) throws Exception
@@ -67,17 +50,20 @@ public class App
         UserRepository userRepository = new UserRepository(app.connectionSource);
         RoleRepository roleRepository = new RoleRepository(app.connectionSource);
         UserRoleRepository userRoleRepository = new UserRoleRepository(app.connectionSource);
+        EmployeeRepository employeeRepository = new EmployeeRepository(app.connectionSource);
+        AttendanceRepository attendanceRepository = new AttendanceRepository(app.connectionSource);
+        OvertimeRepository overtimeRepository = new OvertimeRepository(app.connectionSource);
+        LeaveRepository leaveRepository = new LeaveRepository(app.connectionSource);
+
+        RepositoriesDto repositoriesDto = new RepositoriesDto(userRepository, roleRepository, userRoleRepository,
+            employeeRepository, attendanceRepository, overtimeRepository, leaveRepository);
 
         // Services
-        SeedService seedService = new SeedService(userRepository, roleRepository, userRoleRepository);
+        SeedService seedService = new SeedService(repositoriesDto);
         seedService.seed();
 
-        // Views
+        LoginView loginView = new LoginView(app.gui, repositoriesDto);
 
-        app.showLoginScreen(userRepository);
-    }
-
-    public void showMessage(String message, String title) {
-        MessageDialog.showMessageDialog(gui, title, message);
+        app.gui.addWindowAndWait(loginView.getWindow());
     }
 }

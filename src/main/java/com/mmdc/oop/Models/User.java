@@ -14,6 +14,9 @@ public class User {
     @DatabaseField
     private String password;
 
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = "employee_id")
+    private Employee employee;
+
     public User() {}
 
     // Getters and setters
@@ -35,5 +38,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 }
