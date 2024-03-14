@@ -12,7 +12,9 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.CheckBox;
+import com.googlecode.lanterna.gui2.Component;
 import com.googlecode.lanterna.gui2.Direction;
+import com.googlecode.lanterna.gui2.EmptySpace;
 import com.googlecode.lanterna.gui2.GridLayout;
 import com.googlecode.lanterna.gui2.Label;
 import com.googlecode.lanterna.gui2.LinearLayout;
@@ -44,7 +46,7 @@ public class DashboardView implements IView {
   private EmployeeRepository employeeRepository;
   private RepositoriesDto re;
   private MultiWindowTextGUI gui;
-  
+
   private List<User> users;
 
   public DashboardView(MultiWindowTextGUI gui, RepositoriesDto repositoriesDto) {
@@ -58,7 +60,6 @@ public class DashboardView implements IView {
     this.gui = gui;
     this.panel = new Panel();
 
-
     panel.setLayoutManager(new GridLayout(1));
 
     Panel infoPanel = new Panel();
@@ -66,9 +67,11 @@ public class DashboardView implements IView {
     // User: <username> Role: <role>
     User user = AppState.currentUser;
     Role role = AppState.currentRole;
-    
-    if(AppState.currentUser != null) infoPanel.addComponent(new Label("User: " + user.getUsername() + " Role: " + role.getRoleName()));
-    else infoPanel.addComponent(new Label("User: Guest Role: Guest")); 
+
+    if (AppState.currentUser != null)
+      infoPanel.addComponent(new Label("User: " + user.getUsername() + " Role: " + role.getRoleName()));
+    else
+      infoPanel.addComponent(new Label("User: Guest Role: Guest"));
 
     Panel footerPanel = new Panel();
     footerPanel.setLayoutManager(new GridLayout(2));
@@ -77,18 +80,40 @@ public class DashboardView implements IView {
       gui.removeWindow(gui.getActiveWindow());
       LoginView loginView = new LoginView(gui, re);
       gui.addWindowAndWait(loginView.getWindow());
-    }); 
+    });
     footerPanel.addComponent(logoutButton);
 
     // Dashboard screen checkboxes
     Panel dashboardPanel = new Panel();
     dashboardPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
     List<CheckBox> checkBoxList = new ArrayList<>();
-    String[] labels = {"Users", "Profile", "Attendance", "Payroll"};
+    String currentRole = AppState.currentRole.getRoleName();
+    List<String> labels = new ArrayList<>();
+    if(currentRole.equals("admin")) {
+      labels.add("Users");
+      labels.add("Profile");
+      labels.add("Attendance");
+      labels.add("Payroll");
+      labels.add("Payroll Reports");
+    } else if(currentRole.equals("employee")) {
+      labels.add("Profile");
+      labels.add("Attendance");
+    } else if(currentRole.equals("payroll")) {
+      labels.add("Profile");
+      labels.add("Attendance");
+      labels.add("Payroll");
+      labels.add("Payroll Reports");
+    } else if(currentRole == "hr") {
+      labels.add("Users");
+      labels.add("Profile");
+      labels.add("Attendance");
+    } else {
+      labels.add("Profile");
+    }
 
-    //change forloop
-    for (int i = 0; i < labels.length; i++) {
-      CheckBox checkBox = new CheckBox(labels[i]);
+    // change forloop
+    for (int i = 0; i < labels.size(); i++) {
+      CheckBox checkBox = new CheckBox(labels.get(i));
       checkBoxList.add(checkBox);
       dashboardPanel.addComponent(checkBox);
     }
@@ -96,38 +121,45 @@ public class DashboardView implements IView {
     Panel userManagementPanel = getUserManagement();
     Panel profilePanel = getProfilePanel();
 
-
     checkBoxList.forEach(checkBox -> checkBox.addListener(e -> {
-      if(e) {
+      if (e) {
+        AppState.currentView = checkBox.getLabel();
         panel.removeAllComponents();
         panel.addComponent(infoPanel);
         panel.addComponent(dashboardPanel);
         checkBoxList.forEach(cb -> {
-          if(cb != checkBox) {
+          if (cb != checkBox) {
             cb.setChecked(false);
           }
         });
-        if(checkBox.getLabel().equals("Users")) {
+        if (checkBox.getLabel().equals("Users")) {
           panel.addComponent(userManagementPanel);
-        } 
-        if(checkBox.getLabel().equals("Profile")) {
+        }
+        if (checkBox.getLabel().equals("Profile")) {
           panel.addComponent(profilePanel);
         }
-        if(checkBox.getLabel().equals("Attendance")) {
+        if (checkBox.getLabel().equals("Attendance")) {
           panel.addComponent(getAttendancePanel());
         }
-        if(checkBox.getLabel().equals("Payroll")) {
+        if (checkBox.getLabel().equals("Payroll")) {
           panel.addComponent(getPayrollPanel());
+        }
+        if(checkBox.getLabel().equals("Payroll Reports")) {
+          panel.addComponent(getPayrollReportsPanel());
         }
         panel.addComponent(footerPanel);
       }
-        }));
+    }));
 
-    checkBoxList.get(0).setChecked(true);
+    String currentView = AppState.currentView;
+    checkBoxList.forEach(checkBox -> {
+      if (checkBox.getLabel().equals(currentView)) {
+        checkBox.setChecked(true);
+      }
+    });
 
     panel.addComponent(infoPanel);
     panel.addComponent(dashboardPanel);
-
 
     this.window = new BasicWindow("Dashboard");
 
@@ -174,9 +206,9 @@ public class DashboardView implements IView {
     }
 
     checkBoxList.forEach(checkBox -> checkBox.addListener(e -> {
-      if(e) {
+      if (e) {
         checkBoxList.forEach(cb -> {
-          if(cb != checkBox) {
+          if (cb != checkBox) {
             cb.setChecked(false);
           }
         });
@@ -194,10 +226,11 @@ public class DashboardView implements IView {
 
     Button editUserButton = new Button("Edit");
     editUserButton.addListener(e -> {
-      if(checkBoxList.stream().anyMatch(CheckBox::isChecked)) {
-        Integer id = Integer.parseInt(checkBoxList.stream().filter(CheckBox::isChecked).findFirst().get().getLabel().toString());
+      if (checkBoxList.stream().anyMatch(CheckBox::isChecked)) {
+        Integer id = Integer
+            .parseInt(checkBoxList.stream().filter(CheckBox::isChecked).findFirst().get().getLabel().toString());
         User user = userRepository.findById(id);
-        if(user == null) {
+        if (user == null) {
           MessageDialog.showMessageDialog(gui, "Error", "User not found");
           return;
         }
@@ -208,15 +241,16 @@ public class DashboardView implements IView {
 
     Button deleteButton = new Button("Delete");
     deleteButton.addListener(e -> {
-      if(checkBoxList.stream().anyMatch(CheckBox::isChecked)) {
-        Integer id = Integer.parseInt(checkBoxList.stream().filter(CheckBox::isChecked).findFirst().get().getLabel().toString());
+      if (checkBoxList.stream().anyMatch(CheckBox::isChecked)) {
+        Integer id = Integer
+            .parseInt(checkBoxList.stream().filter(CheckBox::isChecked).findFirst().get().getLabel().toString());
         User user = userRepository.findById(id);
-        if(user == null) {
+        if (user == null) {
           MessageDialog.showMessageDialog(gui, "Error", "User not found");
           return;
         }
 
-        if(user.getId() == AppState.currentUser.getId()) {
+        if (user.getId() == AppState.currentUser.getId()) {
           MessageDialog.showMessageDialog(gui, "Error", "You cannot delete yourself");
           return;
         }
@@ -240,6 +274,15 @@ public class DashboardView implements IView {
     parent.addComponent(new Label("Your Profile"));
     parent.addComponent(new Label(""));
 
+    Button viewButton = new Button("View Payslips");
+    viewButton.addListener((button) -> {
+      gui.addWindowAndWait(new ShowPayrollReport(gui, AppState.currentUser.getId(), re).getWindow());
+    });
+    parent.addComponent(viewButton);
+    parent.addComponent(new Label(""));
+    parent.addComponent(new Label(""));
+    parent.addComponent(new Label(""));
+
     Panel firstColumn = new Panel();
     firstColumn.setLayoutManager(new GridLayout(2));
     Panel secondColumn = new Panel();
@@ -249,7 +292,7 @@ public class DashboardView implements IView {
     TextBox firstNameTextBox = new TextBox();
     firstColumn.addComponent(firstNameTextBox);
 
-    //middle name
+    // middle name
     firstColumn.addComponent(new Label("Middle Name:"));
     TextBox middleNameTextBox = new TextBox();
     firstColumn.addComponent(middleNameTextBox);
@@ -281,7 +324,6 @@ public class DashboardView implements IView {
     firstColumn.addComponent(new Label("Email*:"));
     TextBox emailTextBox = new TextBox();
     firstColumn.addComponent(emailTextBox);
-
 
     // SSS, TIN, PhilHealth, PAGIBIG
     firstColumn.addComponent(new Label("SSS*:"));
@@ -352,16 +394,15 @@ public class DashboardView implements IView {
     employeeStatusTextBox.setReadOnly(true);
     secondColumn.addComponent(employeeStatusTextBox);
 
-
     Employee currentEmployee = AppState.currentUser.getEmployee();
 
-    //Work Days
+    // Work Days
     Panel workDaysContainer = new Panel();
     workDaysContainer.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
     List<CheckBox> workDaysCheckBoxList = new ArrayList<>();
     // SUN,MON,TUE,WED,THU,FRI,SAT
-    String[] workDays = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
-    String employeeWorkDays = currentEmployee.getWorkDays(); 
+    String[] workDays = { "SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT" };
+    String employeeWorkDays = currentEmployee.getWorkDays();
 
     for (String workDay : workDays) {
       CheckBox checkBox = new CheckBox(workDay);
@@ -400,7 +441,7 @@ public class DashboardView implements IView {
 
     try {
       Employee employee = employeeRepository.findById(AppState.currentUser.getId());
-      if(employee != null) {
+      if (employee != null) {
         firstNameTextBox.setText(employee.getFirstName() != null ? employee.getFirstName() : "");
         middleNameTextBox.setText(employee.getMiddleName() != null ? employee.getMiddleName() : "");
         lastNameTextBox.setText(employee.getLastName() != null ? employee.getLastName() : "");
@@ -410,10 +451,14 @@ public class DashboardView implements IView {
         provinceTextBox.setText(employee.getProvince() != null ? employee.getProvince() : "");
         phoneTextBox.setText(employee.getPhone() != null ? employee.getPhone() : "");
         emailTextBox.setText(employee.getEmail() != null ? employee.getEmail() : "");
-        emergencyContactNameTextBox.setText(employee.getEmergencyContactName() != null ? employee.getEmergencyContactName() : "");
-        emergencyContactPhoneTextBox.setText(employee.getEmergencyContactPhone() != null ? employee.getEmergencyContactPhone() : "");
-        emergencyContactAddressTextBox.setText(employee.getEmergencyContactAddress() != null ? employee.getEmergencyContactAddress() : "");
-        emergencyContactRelationshipTextBox.setText(employee.getEmergencyContactRelationship() != null ? employee.getEmergencyContactRelationship() : "");
+        emergencyContactNameTextBox
+            .setText(employee.getEmergencyContactName() != null ? employee.getEmergencyContactName() : "");
+        emergencyContactPhoneTextBox
+            .setText(employee.getEmergencyContactPhone() != null ? employee.getEmergencyContactPhone() : "");
+        emergencyContactAddressTextBox
+            .setText(employee.getEmergencyContactAddress() != null ? employee.getEmergencyContactAddress() : "");
+        emergencyContactRelationshipTextBox.setText(
+            employee.getEmergencyContactRelationship() != null ? employee.getEmergencyContactRelationship() : "");
         sssTextBox.setText(employee.getSSS() != null ? employee.getSSS() : "");
         tinTextBox.setText(employee.getTIN() != null ? employee.getTIN() : "");
         philHealthTextBox.setText(employee.getPhilHealth() != null ? employee.getPhilHealth() : "");
@@ -425,10 +470,10 @@ public class DashboardView implements IView {
         hourlyRateTextBox.setText(employee.getHourlyRate() != null ? employee.getHourlyRate() + "" : "");
         employeeTypeTextBox.setText(employee.getEmployeeType() != null ? employee.getEmployeeType() : "");
         employeeStatusTextBox.setText(employee.getEmployeeStatus() != null ? employee.getEmployeeStatus() : "");
-      } 
+      }
     } catch (Exception e) {
       e.printStackTrace();
-      MessageDialog.showMessageDialog(gui,"Error", e.getMessage());
+      MessageDialog.showMessageDialog(gui, "Error", e.getMessage());
     }
 
     parent.addComponent(firstColumn);
@@ -436,49 +481,54 @@ public class DashboardView implements IView {
 
     Button saveButton = new Button("Update Profile Information");
     saveButton.addListener((button) -> {
-    try {
-      Employee employee = employeeRepository.findById(AppState.currentUser.getId());
+      try {
+        Employee employee = employeeRepository.findById(AppState.currentUser.getId());
 
-      if(firstNameTextBox.getText().isEmpty() || lastNameTextBox.getText().isEmpty() || dateOfBirthTextBox.getText().isEmpty() || addressTextBox.getText().isEmpty() || phoneTextBox.getText().isEmpty() || emailTextBox.getText().isEmpty() || sssTextBox.getText().isEmpty() || tinTextBox.getText().isEmpty() || philHealthTextBox.getText().isEmpty() || pagibigTextBox.getText().isEmpty()) {
-        MessageDialog.showMessageDialog(gui, "Error", "All required fields must be filled");
-        return;
+        if (firstNameTextBox.getText().isEmpty() || lastNameTextBox.getText().isEmpty()
+            || dateOfBirthTextBox.getText().isEmpty() || addressTextBox.getText().isEmpty()
+            || phoneTextBox.getText().isEmpty() || emailTextBox.getText().isEmpty() || sssTextBox.getText().isEmpty()
+            || tinTextBox.getText().isEmpty() || philHealthTextBox.getText().isEmpty()
+            || pagibigTextBox.getText().isEmpty()) {
+          MessageDialog.showMessageDialog(gui, "Error", "All required fields must be filled");
+          return;
+        }
+
+        if (employee != null) {
+          employee.setFirstName(firstNameTextBox.getText());
+          employee.setMiddleName(middleNameTextBox.getText());
+          employee.setLastName(lastNameTextBox.getText());
+          employee.setDateOfBirth(dateOfBirthTextBox.getText());
+          employee.setAddress(addressTextBox.getText());
+          employee.setCity(cityTextBox.getText());
+          employee.setProvince(provinceTextBox.getText());
+          employee.setPhone(phoneTextBox.getText());
+          employee.setEmail(emailTextBox.getText());
+          employee.setEmergencyContactName(emergencyContactNameTextBox.getText());
+          employee.setEmergencyContactPhone(emergencyContactPhoneTextBox.getText());
+          employee.setEmergencyContactAddress(emergencyContactAddressTextBox.getText());
+          employee.setEmergencyContactRelationship(emergencyContactRelationshipTextBox.getText());
+          employee.setSSS(sssTextBox.getText());
+          employee.setTIN(tinTextBox.getText());
+          employee.setPhilHealth(philHealthTextBox.getText());
+          employee.setPAGIBIG(pagibigTextBox.getText());
+          employee.setDepartment(departmentTextBox.getText());
+          employee.setPosition(positionTextBox.getText());
+          employee.setHireDate(hireDateTextBox.getText());
+          employee.setSalary(Double.parseDouble(salaryTextBox.getText()));
+          employee.setHourlyRate(Double.parseDouble(hourlyRateTextBox.getText()));
+          employee.setEmployeeType(employeeTypeTextBox.getText());
+          employee.setEmployeeStatus(employeeStatusTextBox.getText());
+
+          employeeRepository.update(employee);
+          MessageDialog.showMessageDialog(gui, "Success", "Profile updated");
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        MessageDialog.showMessageDialog(gui, "Error", e.getMessage());
       }
-
-      if(employee != null) {
-        employee.setFirstName(firstNameTextBox.getText());
-        employee.setMiddleName(middleNameTextBox.getText());
-        employee.setLastName(lastNameTextBox.getText());
-        employee.setDateOfBirth(dateOfBirthTextBox.getText());
-        employee.setAddress(addressTextBox.getText());
-        employee.setCity(cityTextBox.getText());
-        employee.setProvince(provinceTextBox.getText());
-        employee.setPhone(phoneTextBox.getText());
-        employee.setEmail(emailTextBox.getText());
-        employee.setEmergencyContactName(emergencyContactNameTextBox.getText());
-        employee.setEmergencyContactPhone(emergencyContactPhoneTextBox.getText());
-        employee.setEmergencyContactAddress(emergencyContactAddressTextBox.getText());
-        employee.setEmergencyContactRelationship(emergencyContactRelationshipTextBox.getText());
-        employee.setSSS(sssTextBox.getText());
-        employee.setTIN(tinTextBox.getText());
-        employee.setPhilHealth(philHealthTextBox.getText());
-        employee.setPAGIBIG(pagibigTextBox.getText());
-        employee.setDepartment(departmentTextBox.getText());
-        employee.setPosition(positionTextBox.getText());
-        employee.setHireDate(hireDateTextBox.getText());
-        employee.setSalary(Double.parseDouble(salaryTextBox.getText()));
-        employee.setHourlyRate(Double.parseDouble(hourlyRateTextBox.getText()));
-        employee.setEmployeeType(employeeTypeTextBox.getText());
-        employee.setEmployeeStatus(employeeStatusTextBox.getText());
-
-        employeeRepository.update(employee);
-        MessageDialog.showMessageDialog(gui, "Success", "Profile updated");
-      }
-    } catch(Exception e) {
-      e.printStackTrace();
-      MessageDialog.showMessageDialog(gui, "Error", e.getMessage());
-    }
-    } );
+    });
     parent.addComponent(saveButton);
+
 
     return parent;
   }
@@ -492,7 +542,7 @@ public class DashboardView implements IView {
 
     List<Attendance> userAttendances = new ArrayList<>();
     refAttendances.forEach(attendance -> {
-      if(attendance.getUser().getId() == user.getId()) {
+      if (attendance.getUser().getId() == user.getId()) {
         userAttendances.add(attendance);
       }
     });
@@ -506,13 +556,14 @@ public class DashboardView implements IView {
     DayOfWeek dayOfWeek = today.getDayOfWeek();
     String todayName = dayOfWeek.name().substring(0, 3);
 
-    if(!workDays.contains(todayName)) {
+    if (!workDays.contains(todayName)) {
       parent.addComponent(new Label("Today is not a workday"));
       return parent;
     }
 
-    Attendance currentAttendance = userAttendances.stream().filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString())).findAny().orElse(null);
-    if(currentAttendance == null) { 
+    Attendance currentAttendance = userAttendances.stream()
+        .filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString())).findAny().orElse(null);
+    if (currentAttendance == null) {
       currentAttendance = new Attendance();
       currentAttendance.setUser(user);
       currentAttendance.setDateIn(LocalDate.now().toString());
@@ -529,18 +580,19 @@ public class DashboardView implements IView {
     schedule.setLayoutManager(new GridLayout(2));
 
     schedule.addComponent(new Label("Date (YYYY-MM-DD):"));
-    TextBox dateInput = new TextBox(new TerminalSize(12, 1)).setValidationPattern(Pattern.compile("(\\d{0,4}-?\\d{0,2}-?\\d{0,2})?"));
-    if(currentAttendance != null) {
+    TextBox dateInput = new TextBox(new TerminalSize(12, 1))
+        .setValidationPattern(Pattern.compile("(\\d{0,4}-?\\d{0,2}-?\\d{0,2})?"));
+    if (currentAttendance != null) {
       dateInput.setText(currentAttendance.getDateIn());
     }
     dateInput.setReadOnly(true);
     schedule.addComponent(dateInput);
 
-    //Time In/ Time Out info TextBox
+    // Time In/ Time Out info TextBox
     schedule.addComponent(new Label("Time In (HH:mm):"));
     TextBox timeInTextBox = new TextBox();
-    if(currentAttendance != null) {
-      if(currentAttendance.getTimeIn() != null) {
+    if (currentAttendance != null) {
+      if (currentAttendance.getTimeIn() != null) {
         timeInTextBox.setText(currentAttendance.getTimeIn());
         schedule.removeComponent(new Button("Time In"));
       }
@@ -550,8 +602,8 @@ public class DashboardView implements IView {
 
     schedule.addComponent(new Label("Time Out (HH:mm):"));
     TextBox timeOutTextBox = new TextBox();
-    if(currentAttendance != null) {
-      if(currentAttendance.getTimeOut() != null) {
+    if (currentAttendance != null) {
+      if (currentAttendance.getTimeOut() != null) {
         timeOutTextBox.setText(currentAttendance.getTimeOut());
         schedule.removeComponent(new Button("Time Out"));
       }
@@ -568,9 +620,12 @@ public class DashboardView implements IView {
     timeInButton.addListener((button) -> {
       User cUser = AppState.currentUser;
       List<Attendance> cAttendances = attendanceRepository.findAll();
-      Attendance cAttendance = cAttendances.stream().filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString()) && attendance.getUser().getId() == cUser.getId()).findAny().orElse(null);
-      if(cAttendance != null) {
-        if(cAttendance.getTimeIn() != null) {
+      Attendance cAttendance = cAttendances.stream()
+          .filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString())
+              && attendance.getUser().getId() == cUser.getId())
+          .findAny().orElse(null);
+      if (cAttendance != null) {
+        if (cAttendance.getTimeIn() != null) {
           MessageDialog.showMessageDialog(gui, "Error", "You have already timed in");
           return;
         }
@@ -583,8 +638,7 @@ public class DashboardView implements IView {
         schedule.removeComponent(timeInButton);
         schedule.addComponent(timeOutButton);
         MessageDialog.showMessageDialog(gui, "Success", "Time in recorded");
-      }
-      else {
+      } else {
         cAttendance = new Attendance();
         cAttendance.setUser(cUser);
         cAttendance.setDateIn(LocalDate.now().toString());
@@ -603,9 +657,12 @@ public class DashboardView implements IView {
     timeOutButton.addListener((button) -> {
       User cUser = AppState.currentUser;
       List<Attendance> cAttendances = attendanceRepository.findAll();
-      Attendance cAttendance = cAttendances.stream().filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString()) && attendance.getUser().getId() == cUser.getId()).findAny().orElse(null);
-      if(cAttendance != null) {
-        if(cAttendance.getTimeOut() != null) {
+      Attendance cAttendance = cAttendances.stream()
+          .filter(attendance -> attendance.getDateIn().equals(LocalDate.now().toString())
+              && attendance.getUser().getId() == cUser.getId())
+          .findAny().orElse(null);
+      if (cAttendance != null) {
+        if (cAttendance.getTimeOut() != null) {
           MessageDialog.showMessageDialog(gui, "Error", "You have already timed out");
           return;
         }
@@ -620,8 +677,7 @@ public class DashboardView implements IView {
         schedule.removeComponent(actionLabel);
         schedule.addComponent(new Label("You have timed in and out for today"));
         MessageDialog.showMessageDialog(gui, "Success", "Time out recorded");
-      }
-      else {
+      } else {
         cAttendance = new Attendance();
         cAttendance.setUser(cUser);
         cAttendance.setDateIn(LocalDate.now().toString());
@@ -640,14 +696,13 @@ public class DashboardView implements IView {
       }
     });
 
-    if(currentAttendance.getTimeIn() == null) {
+    if (currentAttendance.getTimeIn() == null) {
       schedule.addComponent(timeInButton);
-    }
-    else if(currentAttendance.getTimeOut() == null) {
+    } else if (currentAttendance.getTimeOut() == null) {
       schedule.addComponent(timeOutButton);
     }
 
-    if(currentAttendance.getTimeIn() != null && currentAttendance.getTimeOut() != null) {
+    if (currentAttendance.getTimeIn() != null && currentAttendance.getTimeOut() != null) {
       schedule.removeComponent(timeInButton);
       schedule.removeComponent(timeOutButton);
       schedule.removeComponent(actionLabel);
@@ -663,6 +718,173 @@ public class DashboardView implements IView {
     Panel parent = new Panel();
     parent.setLayoutManager(new LinearLayout(Direction.VERTICAL));
 
+    parent.addComponent(new Label(""));
+    parent.addComponent(new Label("Payroll Management"));
+
+    Panel panel = new Panel();
+    panel.setLayoutManager(new GridLayout(7)); // 7 columns for days of the week
+
+    String[] dayNames = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    for (String dayName : dayNames) {
+      panel.addComponent(new Label(dayName));
+    }
+
+    Button backButton = new Button("Back");
+    Button nextButton = new Button("Next");
+    backButton.addListener(e -> {
+      AppState.currentCalendarDate = AppState.currentCalendarDate.minusMonths(1);
+      gui.removeWindow(gui.getActiveWindow());
+      DashboardView dashboardView = new DashboardView(gui, re);
+      gui.addWindowAndWait(dashboardView.getWindow());
+    });
+
+    nextButton.addListener(e -> {
+      AppState.currentCalendarDate = AppState.currentCalendarDate.plusMonths(1);
+      gui.removeWindow(gui.getActiveWindow());
+      DashboardView dashboardView = new DashboardView(gui, re);
+      gui.addWindowAndWait(dashboardView.getWindow());
+    });
+
+    Panel headerPanel = new Panel();
+    headerPanel.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+    Panel actionPanel = new Panel();
+    actionPanel.setLayoutManager(new GridLayout(3));
+    actionPanel.addComponent(backButton);
+    actionPanel.addComponent(new Label(AppState.currentCalendarDate.getMonth().toString() + " "
+        + AppState.currentCalendarDate.getYear()));
+    actionPanel.addComponent(nextButton);
+
+    Panel infoPanel = new Panel();
+    infoPanel.setLayoutManager(new GridLayout(2));
+    // Paybegindate and Payenddate interval using checkbox
+    infoPanel.addComponent(new Label("Selected Pay Begin Date:"));
+    if (AppState.selectedPayBeginDate == null) {
+      infoPanel.addComponent(new Label("None selected"));
+    } else {
+      infoPanel.addComponent(new Label(AppState.selectedPayBeginDate.toString()));
+    }
+    infoPanel.addComponent(new Label("Selected Pay End Date:"));
+    if (AppState.selectedPayEndDate == null) {
+      infoPanel.addComponent(new Label("None selected"));
+    } else {
+      infoPanel.addComponent(new Label(AppState.selectedPayEndDate.toString()));
+    }
+
+    headerPanel.addComponent(actionPanel);
+    headerPanel.addComponent(infoPanel);
+    headerPanel.addComponent(new Label(""));
+
+    LocalDate currentMonth = AppState.currentCalendarDate;
+    LocalDate firstOfMonth = currentMonth.withDayOfMonth(1);
+    LocalDate lastOfMonth = currentMonth.withDayOfMonth(currentMonth.lengthOfMonth());
+
+    // Find out what day of the week the first of the month falls on
+    DayOfWeek startDay = firstOfMonth.getDayOfWeek();
+    int value = startDay.getValue(); // 1 = Monday, 7 = Sunday
+    value = value % 7; // Adjust to start from Sunday
+
+    for (int i = 0; i < value; i++) {
+      panel.addComponent(new EmptySpace());
+    }
+
+    for (int day = 1; day <= lastOfMonth.getDayOfMonth(); day++) {
+      CheckBox dayCheckBox = new CheckBox(String.valueOf(day));
+      // set the dayCheckbox to true if within the selectedPayBeginDate and selectedPayEndDate
+      if(AppState.selectedPayBeginDate != null && AppState.selectedPayEndDate != null) {
+        if (LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), day).isAfter(AppState.selectedPayBeginDate)
+            && (LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), day).isBefore(AppState.selectedPayEndDate) || 
+            LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), day).isEqual(AppState.selectedPayEndDate)
+            )) { 
+          dayCheckBox.setChecked(true);
+        }
+      }
+
+      if(AppState.selectedPayBeginDate != null) {
+        if (LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), day).isEqual(AppState.selectedPayBeginDate)) {
+          dayCheckBox.setChecked(true);
+        }
+      }
+
+      dayCheckBox.addListener((e) -> {
+        if (e) {
+          final int selectedDay = Integer.parseInt(dayCheckBox.getLabel());
+          if (AppState.selectedPayBeginDate != null && AppState.selectedPayEndDate != null) {
+            AppState.selectedPayBeginDate = LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), selectedDay);
+            AppState.selectedPayEndDate = null;
+            gui.removeWindow(gui.getActiveWindow());
+            DashboardView dashboardView = new DashboardView(gui, re);
+            gui.addWindowAndWait(dashboardView.getWindow());
+            return;
+          }
+
+          if (AppState.selectedPayBeginDate == null) {
+            AppState.selectedPayBeginDate = LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), selectedDay);
+            gui.removeWindow(gui.getActiveWindow());
+            DashboardView dashboardView = new DashboardView(gui, re);
+            gui.addWindowAndWait(dashboardView.getWindow());
+            return;
+          } else if (AppState.selectedPayEndDate == null) {
+            AppState.selectedPayEndDate = LocalDate.of(currentMonth.getYear(), currentMonth.getMonth(), selectedDay);
+            gui.removeWindow(gui.getActiveWindow());
+            DashboardView dashboardView = new DashboardView(gui, re);
+            gui.addWindowAndWait(dashboardView.getWindow());
+            return;
+          }
+        }
+      });
+      panel.addComponent(dayCheckBox);
+    }
+
+    parent.addComponent(headerPanel);
+
+    parent.addComponent(panel);
+
+    Panel footerPanel = new Panel();
+    footerPanel.setLayoutManager(new GridLayout(2));
+    Button generatePayrollButton = new Button("Generate Payroll");
+    generatePayrollButton.addListener((button) -> {
+      if (AppState.selectedPayBeginDate == null || AppState.selectedPayEndDate == null) {
+        MessageDialog.showMessageDialog(gui, "Error", "Please select a pay period");
+        return;
+      }
+      gui.addWindowAndWait(new GeneratePayrollView(gui, re).getWindow());
+    });
+
+    footerPanel.addComponent(generatePayrollButton);
+    parent.addComponent(footerPanel);
+    return parent;
+  }
+
+  private Panel getPayrollReportsPanel() {
+    Panel parent = new Panel();
+    parent.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+    Panel headerPanel = new Panel();
+    headerPanel.setLayoutManager(new GridLayout(2));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label("Payroll Reports"));
+    headerPanel.addComponent(new Label(""));
+
+    parent.addComponent(headerPanel);
+
+    Panel userPanel = new Panel();
+    userPanel.setLayoutManager(new GridLayout(3));
+
+    List<User> users = userRepository.findAll();
+
+    for (User user : users) {
+      Button viewButton = new Button("View");
+      viewButton.addListener(e -> {
+        gui.addWindowAndWait(new ShowPayrollReport(gui, user.getId(), re).getWindow());
+      });
+      userPanel.addComponent(viewButton);
+      userPanel.addComponent(new Label(user.getEmployee().getFirstName()));
+      userPanel.addComponent(new Label(user.getEmployee().getLastName()));
+    }
+
+    parent.addComponent(userPanel);
     return parent;
   }
 }
