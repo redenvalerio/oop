@@ -12,7 +12,6 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.gui2.BasicWindow;
 import com.googlecode.lanterna.gui2.Button;
 import com.googlecode.lanterna.gui2.CheckBox;
-import com.googlecode.lanterna.gui2.Component;
 import com.googlecode.lanterna.gui2.Direction;
 import com.googlecode.lanterna.gui2.EmptySpace;
 import com.googlecode.lanterna.gui2.GridLayout;
@@ -280,12 +279,31 @@ public class DashboardView implements IView {
     });
 
     Button applyForLeave = new Button("Apply for Leave");
+    applyForLeave.addListener((button) -> {
+      gui.addWindowAndWait(new ApplyForLeaveView(gui, AppState.currentUser.getId(), re).getWindow());
+    });
+
+    Button viewLeaveRequests = new Button("View Leave Requests");
+    viewLeaveRequests.addListener((button) -> {
+      gui.addWindowAndWait(new ShowLeaveRequestsView(gui, AppState.currentUser.getId(), re).getWindow());
+    });
+
     Button submitOvertime = new Button("Submit Overtime");
+    submitOvertime.addListener((button) -> {
+      gui.addWindowAndWait(new ApplyForOvertimeView(gui, AppState.currentUser.getId(), re).getWindow());
+    });
+
+    Button viewOvertimeRequests = new Button("View Overtime Requests");
+    viewOvertimeRequests.addListener((button) -> {
+      gui.addWindowAndWait(new ShowOvertimeRequestsView(gui, AppState.currentUser.getId(), re).getWindow());
+    });
 
     parent.addComponent(viewButton);
-    parent.addComponent(applyForLeave);
-    parent.addComponent(submitOvertime);
     parent.addComponent(new Label(""));
+    parent.addComponent(applyForLeave);
+    parent.addComponent(viewLeaveRequests);
+    parent.addComponent(submitOvertime);
+    parent.addComponent(viewOvertimeRequests);
     parent.addComponent(new Label(""));
     parent.addComponent(new Label(""));
 

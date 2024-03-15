@@ -1,7 +1,6 @@
 package com.mmdc.oop.Views;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.googlecode.lanterna.gui2.*;
 import com.googlecode.lanterna.gui2.dialogs.MessageDialog;
@@ -9,7 +8,6 @@ import com.mmdc.oop.DTO.RepositoriesDto;
 import com.mmdc.oop.Interfaces.IView;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Models.UserRole;
-import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
 import com.mmdc.oop.Utils.AppState;

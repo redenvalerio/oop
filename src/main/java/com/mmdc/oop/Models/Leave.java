@@ -34,11 +34,11 @@ public class Leave {
     this.id = id;
   }
 
-  public User getEmployee() {
+  public User getUser() {
     return this.user;
   }
 
-  public void setEmployee(User user) {
+  public void setUser(User user) {
     this.user = user;
   }
 

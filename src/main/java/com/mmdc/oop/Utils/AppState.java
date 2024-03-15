@@ -16,4 +16,11 @@ public class AppState {
   public static LocalDate currentCalendarDate = LocalDate.now();
   public static LocalDate selectedPayBeginDate = null;
   public static LocalDate selectedPayEndDate = null;
+
+  public static LocalDate currentLeaveCalendarDate = LocalDate.now();
+  public static LocalDate selectedLeaveBeginDate = null;
+  public static LocalDate selectedLeaveEndDate = null;
+
+  public static LocalDate currentOvertimeCalendarDate = LocalDate.now();
+  public static LocalDate selectedOvertimeDate = null;
 }
