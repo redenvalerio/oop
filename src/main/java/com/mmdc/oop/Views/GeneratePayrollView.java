@@ -1,6 +1,9 @@
 package com.mmdc.oop.Views;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -100,15 +103,14 @@ public class GeneratePayrollView implements IView {
         for (Attendance attendance : attendances) {
           String timeIn = attendance.getTimeIn();
           String timeOut = attendance.getTimeOut();
-          String[] timeInArr = timeIn.split(":");
-          String[] timeOutArr = timeOut.split(":");
-          int timeInHour = Integer.parseInt(timeInArr[0]);
-          int timeInMinute = Integer.parseInt(timeInArr[1]);
-          int timeOutHour = Integer.parseInt(timeOutArr[0]);
-          int timeOutMinute = Integer.parseInt(timeOutArr[1]);
-          int hours = timeOutHour - timeInHour;
-          int minutes = timeOutMinute - timeInMinute;
-          totalHours += hours + (minutes / 60);
+          try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            LocalTime start = LocalTime.parse(timeIn, formatter);
+            LocalTime end = LocalTime.parse(timeOut, formatter);
+            totalHours = Duration.between(start, end).toMinutes() / 60.0;
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
         }
 
         Payroll payroll = new Payroll();
@@ -134,15 +136,14 @@ public class GeneratePayrollView implements IView {
           for (Overtime overtime : overtimes) {
             String timeStart = overtime.getTimeStart();
             String timeEnd = overtime.getTimeEnd();
-            String[] timeStartArr = timeStart.split(":");
-            String[] timeEndArr = timeEnd.split(":");
-            int timeStartHour = Integer.parseInt(timeStartArr[0]);
-            int timeStartMinute = Integer.parseInt(timeStartArr[1]);
-            int timeEndHour = Integer.parseInt(timeEndArr[0]);
-            int timeEndMinute = Integer.parseInt(timeEndArr[1]);
-            int hours = timeEndHour - timeStartHour;
-            int minutes = timeEndMinute - timeStartMinute;
-            overtimeHours += hours + (minutes / 60);
+            try {
+              DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+              LocalTime start = LocalTime.parse(timeStart, formatter);
+              LocalTime end = LocalTime.parse(timeEnd, formatter);
+              overtimeHours = Duration.between(start, end).toMinutes() / 60.0;
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
           }
         }
         totalHours -= overtimeHours;

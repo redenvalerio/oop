@@ -2,6 +2,7 @@ package com.mmdc.oop.Views;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.googlecode.lanterna.gui2.BasicWindow;
@@ -177,16 +178,15 @@ public class ApplyForLeaveView implements IView {
     Panel footerPanel = new Panel();
     footerPanel.setLayoutManager(new GridLayout(2));
     // total days is number of selected checkbox
-    footerPanel.addComponent(new Label("Total Day/s: " + (AppState.selectedLeaveEndDate != null ? AppState.selectedLeaveEndDate.getDayOfMonth() - AppState.selectedLeaveBeginDate.getDayOfMonth() + 1 : 0)));
+    if(AppState.selectedLeaveBeginDate != null) {
+      footerPanel.addComponent(new Label("Total Days: " + (AppState.selectedLeaveEndDate == null ? 1 : (AppState.selectedLeaveEndDate.getDayOfMonth() - AppState.selectedLeaveBeginDate.getDayOfMonth() + 1))));
+    } else {
+      footerPanel.addComponent(new Label("Total Days: 0"));
+    }
     footerPanel.addComponent(new Label(""));
 
     Button submitButton = new Button("Submit");
     submitButton.addListener((button) -> {
-      if(AppState.selectedLeaveBeginDate == null || AppState.selectedLeaveEndDate == null) {
-        MessageDialog.showMessageDialog(gui, "Error", "Please select a date range");
-        return;
-      }
-
       // check if leave type is selected
       if(leaveTypeCheckBoxList.stream().noneMatch(checkBox -> checkBox.isChecked())) {
         MessageDialog.showMessageDialog(gui, "Error", "Please select a leave type");
@@ -207,6 +207,9 @@ public class ApplyForLeaveView implements IView {
       Leave leave = new Leave();
       leave.setReason(leaveType);
       leave.setDateStart(AppState.selectedLeaveBeginDate.toString());
+      if(AppState.selectedLeaveEndDate == null) {
+        AppState.selectedLeaveEndDate = AppState.selectedLeaveBeginDate;
+      }
       leave.setDateEnd(AppState.selectedLeaveEndDate.toString());
       leave.setStatus("Pending");
       leave.setUser(user);

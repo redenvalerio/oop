@@ -1,6 +1,7 @@
 package com.mmdc.oop.Views;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -25,6 +26,8 @@ import com.mmdc.oop.DTO.RepositoriesDto;
 import com.mmdc.oop.Interfaces.IView;
 import com.mmdc.oop.Models.Attendance;
 import com.mmdc.oop.Models.Employee;
+import com.mmdc.oop.Models.Leave;
+import com.mmdc.oop.Models.Overtime;
 import com.mmdc.oop.Models.Role;
 import com.mmdc.oop.Models.User;
 import com.mmdc.oop.Models.UserRole;
@@ -63,7 +66,6 @@ public class DashboardView implements IView {
 
     Panel infoPanel = new Panel();
     infoPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
-    // User: <username> Role: <role>
     User user = AppState.currentUser;
     Role role = AppState.currentRole;
 
@@ -94,6 +96,8 @@ public class DashboardView implements IView {
       labels.add("Attendance");
       labels.add("Payroll");
       labels.add("Payroll Reports");
+      labels.add("Leave Requests");
+      labels.add("Overtime Requests");
     } else if(currentRole.equals("employee")) {
       labels.add("Profile");
       labels.add("Attendance");
@@ -102,10 +106,12 @@ public class DashboardView implements IView {
       labels.add("Attendance");
       labels.add("Payroll");
       labels.add("Payroll Reports");
+      labels.add("Overtime Requests");
     } else if(currentRole == "hr") {
       labels.add("Users");
       labels.add("Profile");
       labels.add("Attendance");
+      labels.add("Leave Requests");
     } else {
       labels.add("Profile");
     }
@@ -145,6 +151,12 @@ public class DashboardView implements IView {
         }
         if(checkBox.getLabel().equals("Payroll Reports")) {
           panel.addComponent(getPayrollReportsPanel());
+        }
+        if(checkBox.getLabel().equals("Leave Requests")) {
+          panel.addComponent(getLeaveRequestsPanel());
+        }
+        if(checkBox.getLabel().equals("Overtime Requests")) {
+          panel.addComponent(getOvertimeRequestsPanel());
         }
         panel.addComponent(footerPanel);
       }
@@ -225,6 +237,11 @@ public class DashboardView implements IView {
 
     Button editUserButton = new Button("Edit");
     editUserButton.addListener(e -> {
+      if(checkBoxList.stream().noneMatch(CheckBox::isChecked)) {
+        MessageDialog.showMessageDialog(gui, "Error", "Please select a user to edit");
+        return;
+      }
+
       if (checkBoxList.stream().anyMatch(CheckBox::isChecked)) {
         Integer id = Integer
             .parseInt(checkBoxList.stream().filter(CheckBox::isChecked).findFirst().get().getLabel().toString());
@@ -909,6 +926,171 @@ public class DashboardView implements IView {
     }
 
     parent.addComponent(userPanel);
+    return parent;
+  }
+
+  private Panel getLeaveRequestsPanel() {
+    Panel parent = new Panel();
+    parent.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+    Panel headerPanel = new Panel();
+    headerPanel.setLayoutManager(new GridLayout(2));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label("Leave Requests"));
+    headerPanel.addComponent(new Label(""));
+
+    parent.addComponent(headerPanel);
+
+    Panel leavePanel = new Panel();
+    leavePanel.setLayoutManager(new GridLayout(6));
+
+    List<Leave> leaves = re.getLeaveRepository().findAll();
+
+    for (Leave leave: leaves) {
+      Button approveButton = new Button("Approve");
+      User user = re.getUserRepository().findById(leave.getUser().getId());
+      Employee employee = user.getEmployee();
+      approveButton.addListener(e -> {
+        BasicWindow window = new BasicWindow("Approve Leave");
+        Panel panel = new Panel();
+        panel.setLayoutManager(new GridLayout(2));
+        panel.addComponent(new Label(""));
+        panel.addComponent(new Label(""));
+        panel.addComponent(new Label("Approve Leave for " + employee.getFirstName() + " " + employee.getLastName() + "?"));
+        panel.addComponent(new Label(""));
+        Button yes = new Button("Yes");
+        yes.addListener(e1 -> {
+          leave.setStatus("Approved");
+          re.getLeaveRepository().update(leave);
+          window.close();
+          gui.removeWindow(gui.getActiveWindow());
+          DashboardView dashboardView = new DashboardView(gui, re);
+          gui.addWindowAndWait(dashboardView.getWindow());
+          AppState.currentView = "Leave Requests";
+        });
+        Button no = new Button("No");
+        no.addListener(e1 -> {
+          leave.setStatus("Declined");
+          re.getLeaveRepository().update(leave);
+          window.close();
+          gui.removeWindow(gui.getActiveWindow());
+          DashboardView dashboardView = new DashboardView(gui, re);
+          gui.addWindowAndWait(dashboardView.getWindow());
+          AppState.currentView = "Leave Requests";
+        });
+
+        panel.addComponent(yes);
+        panel.addComponent(no);
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+      });
+      leavePanel.addComponent(approveButton);
+      if(leave.getStatus().equals("Approved")) {
+        approveButton.setEnabled(false);
+      } else if(leave.getStatus().equals("Declined")) {
+        approveButton.setEnabled(false);
+      } else {
+        approveButton.setEnabled(true);
+      }
+      leavePanel.addComponent(new Label(employee.getFirstName()));
+      leavePanel.addComponent(new Label(leave.getDateStart()));
+      leavePanel.addComponent(new Label(leave.getDateEnd()));
+      leavePanel.addComponent(new Label(leave.getReason()));
+      leavePanel.addComponent(new Label(leave.getStatus()));
+    }
+
+    parent.addComponent(leavePanel);
+
+    return parent;
+  }
+
+  private Panel getOvertimeRequestsPanel() {
+    Panel parent = new Panel();
+    parent.setLayoutManager(new LinearLayout(Direction.VERTICAL));
+
+    Panel headerPanel = new Panel();
+    headerPanel.setLayoutManager(new GridLayout(2));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label(""));
+    headerPanel.addComponent(new Label("Overtime Requests"));
+    headerPanel.addComponent(new Label(""));
+
+    parent.addComponent(headerPanel);
+
+    Panel otPanel = new Panel();
+    otPanel.setLayoutManager(new GridLayout(5));
+
+    List<Overtime> overtimes = re.getOvertimeRepository().findAll();
+
+    for (Overtime ot: overtimes) {
+      User user = re.getUserRepository().findById(ot.getUser().getId());
+      Employee employee = user.getEmployee();
+      Button approve = new Button("Approve");
+      approve.addListener(e -> {
+        BasicWindow window = new BasicWindow("Approve Overtime");
+        Panel panel = new Panel();
+        panel.setLayoutManager(new GridLayout(2));
+        panel.addComponent(new Label(""));
+        panel.addComponent(new Label(""));
+        panel.addComponent(new Label("Approve Overtime for " + employee.getFirstName() + " " + employee.getLastName() + "?"));
+        panel.addComponent(new Label(""));
+        Button yes = new Button("Yes");
+        yes.addListener(e1 -> {
+          ot.setStatus("Approved");
+          re.getOvertimeRepository().update(ot);
+          window.close();
+          gui.removeWindow(gui.getActiveWindow());
+          DashboardView dashboardView = new DashboardView(gui, re);
+          gui.addWindowAndWait(dashboardView.getWindow());
+          AppState.currentView = "Overtime Requests";
+        });
+        Button no = new Button("No");
+        no.addListener(e1 -> {
+          ot.setStatus("Declined");
+          re.getOvertimeRepository().update(ot);
+          window.close();
+          gui.removeWindow(gui.getActiveWindow());
+          DashboardView dashboardView = new DashboardView(gui, re);
+          gui.addWindowAndWait(dashboardView.getWindow());
+          AppState.currentView = "Overtime Requests";
+        });
+
+        panel.addComponent(yes);
+        panel.addComponent(no);
+        window.setComponent(panel);
+        gui.addWindowAndWait(window);
+      });
+
+      otPanel.addComponent(approve);
+      if(ot.getStatus().equals("Approved")) {
+        approve.setEnabled(false);
+      } else if(ot.getStatus().equals("Declined")) {
+        approve.setEnabled(false);
+      } else {
+        approve.setEnabled(true);
+      }
+
+      //calculate total hours based on timeStart and timeEnd of ot
+      double totalHours = 0;
+      try {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime start = LocalTime.parse(ot.getTimeStart(), formatter);
+        LocalTime end = LocalTime.parse(ot.getTimeEnd(), formatter);
+        totalHours = Duration.between(start, end).toMinutes() / 60.0;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      // limit to 2 decimal
+      otPanel.addComponent(new Label(String.format("%.2fh", totalHours)));
+      otPanel.addComponent(new Label(ot.getDate()));
+      otPanel.addComponent(new Label(employee.getFirstName()));
+      otPanel.addComponent(new Label(ot.getStatus()));
+    }
+
+    parent.addComponent(otPanel);
+
     return parent;
   }
 }

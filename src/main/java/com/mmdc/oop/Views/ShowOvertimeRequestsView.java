@@ -1,6 +1,9 @@
 package com.mmdc.oop.Views;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.googlecode.lanterna.TerminalSize;
@@ -48,20 +51,17 @@ public class ShowOvertimeRequestsView implements IView {
       double totalHours = 0;
       String timeStart = overtime.getTimeStart();
       String timeEnd = overtime.getTimeEnd();
-
-      String[] timeStartArr = timeStart.split(":");
-      String[] timeEndArr = timeEnd.split(":");
-
-      int timeStartHour = Integer.parseInt(timeStartArr[0]);
-      int timeStartMinute = Integer.parseInt(timeStartArr[1]);
-      int timeEndHour = Integer.parseInt(timeEndArr[0]);
-      int timeEndMinute = Integer.parseInt(timeEndArr[1]);
-      int hours = timeEndHour - timeStartHour;
-      int minutes = timeEndMinute - timeStartMinute;
-      totalHours += hours + (minutes / 60);
+      try {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime start = LocalTime.parse(timeStart, formatter);
+        LocalTime end = LocalTime.parse(timeEnd, formatter);
+        totalHours = Duration.between(start, end).toMinutes() / 60.0;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
       overtimePanel.addComponent(new Label(overtime.getDate()));
-      overtimePanel.addComponent(new Label(totalHours + "h"));
+      overtimePanel.addComponent(new Label(String.format("%.2fh", totalHours)));
       overtimePanel.addComponent(new Label(overtime.getTimeStart()));
       overtimePanel.addComponent(new Label(overtime.getTimeEnd()));
       overtimePanel.addComponent(new Label(overtime.getStatus()));
