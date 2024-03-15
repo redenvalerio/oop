@@ -948,10 +948,10 @@ public class DashboardView implements IView {
     List<Leave> leaves = re.getLeaveRepository().findAll();
 
     for (Leave leave: leaves) {
-      Button approveButton = new Button("Approve");
+      Button action = new Button("Take Action");
       User user = re.getUserRepository().findById(leave.getUser().getId());
       Employee employee = user.getEmployee();
-      approveButton.addListener(e -> {
+      action.addListener(e -> {
         BasicWindow window = new BasicWindow("Approve Leave");
         Panel panel = new Panel();
         panel.setLayoutManager(new GridLayout(2));
@@ -959,6 +959,8 @@ public class DashboardView implements IView {
         panel.addComponent(new Label(""));
         panel.addComponent(new Label("Approve Leave for " + employee.getFirstName() + " " + employee.getLastName() + "?"));
         panel.addComponent(new Label(""));
+        Panel buttonPanel = new Panel();
+        buttonPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
         Button yes = new Button("Yes");
         yes.addListener(e1 -> {
           leave.setStatus("Approved");
@@ -980,19 +982,18 @@ public class DashboardView implements IView {
           AppState.currentView = "Leave Requests";
         });
 
-        panel.addComponent(yes);
-        panel.addComponent(no);
+        Button cancel = new Button("Cancel");
+        cancel.addListener(e1 -> {
+          window.close();
+        });
+        buttonPanel.addComponent(yes);
+        buttonPanel.addComponent(no);
+        buttonPanel.addComponent(cancel);
+        panel.addComponent(buttonPanel);
         window.setComponent(panel);
         gui.addWindowAndWait(window);
       });
-      leavePanel.addComponent(approveButton);
-      if(leave.getStatus().equals("Approved")) {
-        approveButton.setEnabled(false);
-      } else if(leave.getStatus().equals("Declined")) {
-        approveButton.setEnabled(false);
-      } else {
-        approveButton.setEnabled(true);
-      }
+      leavePanel.addComponent(action);
       leavePanel.addComponent(new Label(employee.getFirstName()));
       leavePanel.addComponent(new Label(leave.getDateStart()));
       leavePanel.addComponent(new Label(leave.getDateEnd()));
@@ -1026,8 +1027,8 @@ public class DashboardView implements IView {
     for (Overtime ot: overtimes) {
       User user = re.getUserRepository().findById(ot.getUser().getId());
       Employee employee = user.getEmployee();
-      Button approve = new Button("Approve");
-      approve.addListener(e -> {
+      Button action = new Button("Take Action");
+      action.addListener(e -> {
         BasicWindow window = new BasicWindow("Approve Overtime");
         Panel panel = new Panel();
         panel.setLayoutManager(new GridLayout(2));
@@ -1035,6 +1036,9 @@ public class DashboardView implements IView {
         panel.addComponent(new Label(""));
         panel.addComponent(new Label("Approve Overtime for " + employee.getFirstName() + " " + employee.getLastName() + "?"));
         panel.addComponent(new Label(""));
+
+        Panel buttonPanel = new Panel();
+        buttonPanel.setLayoutManager(new LinearLayout(Direction.HORIZONTAL));
         Button yes = new Button("Yes");
         yes.addListener(e1 -> {
           ot.setStatus("Approved");
@@ -1056,20 +1060,19 @@ public class DashboardView implements IView {
           AppState.currentView = "Overtime Requests";
         });
 
-        panel.addComponent(yes);
-        panel.addComponent(no);
+        Button cancel = new Button("Cancel");
+        cancel.addListener(e1 -> {
+          window.close();
+        });
+        buttonPanel.addComponent(yes);
+        buttonPanel.addComponent(no);
+        buttonPanel.addComponent(cancel);
+        panel.addComponent(buttonPanel);
         window.setComponent(panel);
         gui.addWindowAndWait(window);
       });
 
-      otPanel.addComponent(approve);
-      if(ot.getStatus().equals("Approved")) {
-        approve.setEnabled(false);
-      } else if(ot.getStatus().equals("Declined")) {
-        approve.setEnabled(false);
-      } else {
-        approve.setEnabled(true);
-      }
+      otPanel.addComponent(action);
 
       //calculate total hours based on timeStart and timeEnd of ot
       double totalHours = 0;
