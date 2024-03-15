@@ -16,6 +16,7 @@ import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
 import com.mmdc.oop.Services.SeedService;
+import com.mmdc.oop.Utils.DatabaseUtil;
 import com.mmdc.oop.Views.LoginView;
 
 import com.googlecode.lanterna.TextColor;
@@ -24,7 +25,7 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 
 public class App 
 {
-    private final String DATABASE_URL = "jdbc:sqlite:./src/main/resources/data/myapp.db";
+    private final String DATABASE_URL = DatabaseUtil.connectToDatabase();
     private final ConnectionSource connectionSource;
     private final Screen screen;
     private final MultiWindowTextGUI gui;
