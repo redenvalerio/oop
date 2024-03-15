@@ -4,7 +4,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.logger.LocalLog;
+import com.j256.ormlite.logger.LocalLogBackend;
 import com.j256.ormlite.support.ConnectionSource;
 import com.mmdc.oop.DTO.RepositoriesDto;
 import com.mmdc.oop.Repositories.AttendanceRepository;
@@ -16,7 +16,6 @@ import com.mmdc.oop.Repositories.RoleRepository;
 import com.mmdc.oop.Repositories.UserRepository;
 import com.mmdc.oop.Repositories.UserRoleRepository;
 import com.mmdc.oop.Services.SeedService;
-import com.mmdc.oop.Views.DashboardView;
 import com.mmdc.oop.Views.LoginView;
 
 import com.googlecode.lanterna.TextColor;
@@ -44,7 +43,7 @@ public class App
 
     public static void main( String[] args ) throws Exception
     {
-        System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
+        System.setProperty(LocalLogBackend.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
         App app = new App();
 
         // Repository
